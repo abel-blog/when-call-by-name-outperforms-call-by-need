@@ -83,6 +83,18 @@ I don't want to offer definitive conclusions, but it seems safe to say that abst
 
 On a more mundane basis, maybe it would be worthwile discussing space leak dangers more in the Haskell documentation, e.g. in the one of `cycle`.  I might also be worthwile complementing `cycle` with her call-by-name sister `cycle'`, and discuss their respective advantages.
 
+Update
+------
+
+v0.2: [Jaro Reinders educated me](https://discourse.haskell.org/t/when-call-by-name-outperforms-call-by-need-space-leaks-with-cycle-etc/13586/6?u=andreasabel) that my trick with explicit thunking is thwarted by GHC's _full laziness_ "optimization" [`-ffull-laziness`](https://downloads.haskell.org/ghc/9.14.1/docs/users_guide/using-optimisation.html#ghc-flag-ffull-laziness) that is turned on with `-O`.
+Full laziness lifts expressions from under binders when possible, turning my explicitly thunked version into:
+```haskell
+main = print $ head $ drop (10^8) $ cycle $ \ () -> xs
+xs = [1..10^7]
+```
+This of course reintroduces the sharing I wanted to get rid of and restores the space leak.  Thus, the trick can only be used with `-fno-full-laziness`.
+
+It might be worth mentioning that full laziness is a [disputed feature](https://gitlab.haskell.org/ghc/ghc/-/issues/8457).
 
 Commenting
 ----------
